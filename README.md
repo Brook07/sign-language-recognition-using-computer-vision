@@ -1,6 +1,6 @@
 # Sign Language Recognition using Computer Vision
 
-A simple, friendly project that converts hand signs into text (and optional speech) using computer vision and a trained AI model. This README explains what the project does, why it matters, and how to get started — in plain terms.
+A simple, friendly project that converts hand signs into text (and optional speech) using computer vision and a trained AI model. This README explains what the project does, why it matters, and how to get started in plain terms.
 
 **What this project does**
 - Takes images or a live webcam feed of hand signs.
@@ -64,11 +64,3 @@ uvicorn app.main:app --reload
 
 4. Run the React frontend and open the demo in your browser.
 
-(Note: add `requirements.txt` and frontend files to this repo as next steps.)
-
-**Next steps — recommended**
-- Add `requirements.txt` with core packages (TensorFlow/PyTorch, FastAPI, OpenCV, MediaPipe).
-- Add a minimal FastAPI `app` and a tiny React demo to test the full pipeline.
-- Collect a small custom dataset for testing and log training runs.
-
-If you want, I can: add a `requirements.txt`, scaffold a minimal FastAPI endpoint, or create a tiny React demo to show live predictions. Tell me which one you prefer.
