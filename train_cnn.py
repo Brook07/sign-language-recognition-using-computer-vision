@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 # Configuration
 PREPROCESSED_PATH = r"dataset\Preprocessed_ASL_Digits"
-IMAGE_SIZE = (400, 400)
+IMAGE_SIZE = (128, 128)  # Auto-detected from preprocessed images
 NUM_CLASSES = 10
 BATCH_SIZE = 32
 EPOCHS = 20
@@ -63,8 +63,8 @@ for label in range(NUM_CLASSES):
 X = np.array(X)
 y = np.array(y)
 
-# Reshape X to include channel dimension (height, width, channels)
-X = X.reshape(-1, IMAGE_SIZE[0], IMAGE_SIZE[1], 1)
+# Add channel dimension (height, width, channels)
+X = np.expand_dims(X, axis=-1)
 
 print(f"\n✅ Dataset loaded successfully!")
 print(f"   X shape: {X.shape} (samples, height, width, channels)")
