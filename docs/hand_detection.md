@@ -110,6 +110,7 @@ Built and trained a Convolutional Neural Network in `train_cnn.py`
 
 ---
 
+
 ### 7. Real-Time Testing ✓
 Implemented two testing approaches:
 
