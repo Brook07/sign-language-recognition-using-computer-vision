@@ -1,6 +1,24 @@
 # Dataset
 dataset/
 
+# Model files (large files)
+*.keras
+*.h5
+*.pb
+*.ckpt
+*.weights
+
+# Generated files
+*.csv
+*.png
+training_history.png
+confusion_matrix.png
+test_results.png
+preprocessing_comparison.png
+
+# Virtual environment
+.venv/
+
 # Python
 __pycache__/
 *.py[cod]
