@@ -16,7 +16,7 @@ PREPROCESSED_PATH = r"dataset\Preprocessed_ASL_Digits"
 IMAGE_SIZE = (128, 128)  # Auto-detected from preprocessed images
 NUM_CLASSES = 10
 BATCH_SIZE = 32
-EPOCHS = 20
+EPOCHS = 50
 RANDOM_STATE = 42
 
 print("=" * 60)
