@@ -19,6 +19,7 @@ BATCH_SIZE = 32
 EPOCHS = 50
 RANDOM_STATE = 42
 
+
 print("=" * 60)
 print("🚀 ASL DIGIT RECOGNITION - CNN TRAINING")
 print("=" * 60)
