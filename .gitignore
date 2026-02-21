@@ -11,7 +11,6 @@ dataset/
 # Generated files
 *.csv
 *.png
-!docs/demo/*.png
 training_history.png
 confusion_matrix.png
 test_results.png
