@@ -1,25 +1,4 @@
 # Sign Language Recognition using Computer Vision
-
-A real-time ASL digit recognition system (0-9) using deep learning and computer vision. This project uses MediaPipe for hand detection and a custom CNN for digit classification with temporal smoothing for stable predictions.
-
-## 🎯 Current Status: In Development 🚧
-
-**What this project does:**
-- Real-time hand detection and tracking using MediaPipe
-- Recognizes ASL digits with **99.75% validation accuracy** (training set)
-- Live webcam predictions with temporal smoothing (7-frame buffer)
-- Comprehensive preprocessing and training pipeline
-- Advanced diagnostic tools for model analysis
-
-**Key Features:**
-- ✅ Real-time hand landmark detection (21 points)
-- ✅ CNN model trained on 4,000 images per class
-- ✅ **Temporal smoothing** for stable predictions
-- ✅ Diagnostic tool for visual analysis
-- ✅ **Working digits: 1, 2, 3, 4, 5, 9**
-- ⚠️ **Known issues: Digits 6, 7, 8 need improvement**
-- ⚠️ Validation accuracy != real-world performance (data diversity needed)
-
 ## � Demo
 
 Real-time ASL digit recognition in action:
@@ -44,6 +23,28 @@ Real-time ASL digit recognition in action:
 </table>
 
 *Real-time predictions with confidence scores, bounding boxes, and temporal smoothing*
+
+A real-time ASL digit recognition system (0-9) using deep learning and computer vision. This project uses MediaPipe for hand detection and a custom CNN for digit classification with temporal smoothing for stable predictions.
+
+## 🎯 Current Status: In Development 🚧
+
+**What this project does:**
+- Real-time hand detection and tracking using MediaPipe
+- Recognizes ASL digits with **99.75% validation accuracy** (training set)
+- Live webcam predictions with temporal smoothing (7-frame buffer)
+- Comprehensive preprocessing and training pipeline
+- Advanced diagnostic tools for model analysis
+
+**Key Features:**
+- ✅ Real-time hand landmark detection (21 points)
+- ✅ CNN model trained on 4,000 images per class
+- ✅ **Temporal smoothing** for stable predictions
+- ✅ Diagnostic tool for visual analysis
+- ✅ **Working digits: 1, 2, 3, 4, 5, 9**
+- ⚠️ **Known issues: Digits 6, 7, 8 need improvement**
+- ⚠️ Validation accuracy != real-world performance (data diversity needed)
+
+
 
 ## �🚀 Quick Start
 
