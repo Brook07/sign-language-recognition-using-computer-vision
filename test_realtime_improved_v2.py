@@ -9,19 +9,22 @@ import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 from tensorflow import keras
+from collections import deque
 
 # Configuration
 MODEL_PATH = 'asl_digit_recognition_model.keras'
 IMAGE_SIZE = (128, 128)
 FPS_TARGET = 30
+SMOOTHING_FRAMES = 7  # Average over last 7 predictions for stability
 
 print("=" * 60)
 print("🚀 ASL DIGIT RECOGNITION - REAL-TIME")
 print("=" * 60)
 print("\n✨ FEATURES:")
 print("  • Real-time continuous prediction")
-print("  • Shows predictions as you sign")
-print("  • Correct preprocessing (matches training)")
+print("  • Temporal smoothing (7 frames) for stability")
+print("  • Exact preprocessing match with training")
+print("  • Works best when you hold sign steady")
 print("=" * 60)
 
 # Load the trained model
@@ -46,6 +49,9 @@ options = vision.HandLandmarkerOptions(
 )
 detector = vision.HandLandmarker.create_from_options(options)
 
+# Prediction smoothing buffer
+prediction_buffer = deque(maxlen=SMOOTHING_FRAMES)
+
 def get_hand_bbox(hand_landmarks, img_width, img_height, padding=80):
     """Calculate bounding box around detected hand with generous padding"""
     x_coords = [lm.x * img_width for lm in hand_landmarks]
@@ -58,13 +64,30 @@ def get_hand_bbox(hand_landmarks, img_width, img_height, padding=80):
     
     return x_min, y_min, x_max, y_max
 
+def smooth_predictions(new_predictions):
+    """
+    Add new predictions to buffer and return smoothed result
+    Averages predictions over last N frames for stability
+    """
+    prediction_buffer.append(new_predictions)
+    
+    if len(prediction_buffer) > 0:
+        # Average all predictions in buffer
+        avg_predictions = np.mean(prediction_buffer, axis=0)
+        predicted_class = np.argmax(avg_predictions)
+        confidence = avg_predictions[predicted_class]
+        return predicted_class, confidence, avg_predictions
+    
+    return None, 0.0, None
+
 def preprocess_hand_image(hand_roi):
     """
-    Preprocess hand region (matches training with enhancements for real-time):
+    Preprocess hand region EXACTLY like training data:
     1. Convert to grayscale
-    2. Enhance contrast (helps with lighting variations)  
-    3. Resize to 128x128
-    4. Normalize to [0, 1]
+    2. Resize to 128x128
+    3. Normalize to [0, 1]
+    
+    NO CLAHE or other enhancements - must match training!
     """
     # Convert to grayscale
     if len(hand_roi.shape) == 3:
@@ -72,13 +95,8 @@ def preprocess_hand_image(hand_roi):
     else:
         gray = hand_roi
     
-    # Apply CLAHE (Contrast Limited Adaptive Histogram Equalization)
-    # This helps normalize lighting without over-brightening
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-    enhanced = clahe.apply(gray)
-    
-    # Resize to target size
-    resized = cv2.resize(enhanced, IMAGE_SIZE, interpolation=cv2.INTER_AREA)
+    # Resize to target size (same as training)
+    resized = cv2.resize(gray, IMAGE_SIZE, interpolation=cv2.INTER_AREA)
     
     # Normalize to [0, 1]
     normalized = resized.astype(np.float32) / 255.0
@@ -106,7 +124,9 @@ print("\n✅ System ready!")
 print("\n" + "=" * 60)
 print("INSTRUCTIONS:")
 print("  • Show your hand with a digit sign (0-9)")
-print("  • Predictions update in real-time")
+print("  • Hold steady for ~0.5 sec for accurate reading")
+print("  • Predictions are smoothed over 7 frames for stability")
+print("  • Press 'R' to reset prediction buffer")
 print("  • Press ESC to exit")
 print("=" * 60 + "\n")
 
@@ -144,51 +164,60 @@ while True:
             # Preprocess the hand region
             preprocessed = preprocess_hand_image(hand_roi)
             
-            # Get prediction - ALWAYS SHOW PREDICTIONS
-            predictions = model.predict(preprocessed, verbose=0)[0]
-            predicted_class = np.argmax(predictions)
-            confidence = predictions[predicted_class]
+            # Get raw prediction from model
+            raw_predictions = model.predict(preprocessed, verbose=0)[0]
             
-            # Determine color and status based on confidence
-            if confidence > 0.7:
-                color = (0, 255, 0)  # Green - high confidence
-                status = "HIGH"
-            elif confidence > 0.4:
-                color = (0, 255, 255)  # Yellow - medium confidence
-                status = "MEDIUM"
-            elif confidence > 0.15:
-                color = (0, 165, 255)  # Orange - low-medium confidence
-                status = "LOW"
-            else:
-                color = (0, 0, 255)  # Red - very low confidence
-                status = "VERY LOW"
+            # Apply temporal smoothing (average over last N frames)
+            predicted_class, confidence, smoothed_predictions = smooth_predictions(raw_predictions)
             
-            # ALWAYS draw bounding box
-            cv2.rectangle(display_frame, (x_min, y_min), (x_max, y_max), color, 3)
-            
-            # ALWAYS draw prediction box
-            overlay = display_frame.copy()
-            cv2.rectangle(overlay, (x_min, y_min - 110), (x_min + 450, y_min - 10), (0, 0, 0), -1)
-            cv2.addWeighted(overlay, 0.75, display_frame, 0.25, 0, display_frame)
-            
-            # ALWAYS draw prediction text
-            cv2.putText(display_frame, f"DIGIT: {predicted_class}", 
-                       (x_min + 10, y_min - 70),
-                       cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 3)
-            cv2.putText(display_frame, f"Confidence: {confidence:.1%} ({status})", 
-                       (x_min + 10, y_min - 35),
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-            
-            # ALWAYS draw top 3 predictions
-            top_3_indices = np.argsort(predictions)[-3:][::-1]
-            y_offset = y_max + 30
-            
-            for i, idx in enumerate(top_3_indices):
-                pred_text = f"{idx}: {predictions[idx]:.1%}"
-                cv2.putText(display_frame, pred_text, (x_min, y_offset + i*30),
+            if predicted_class is not None:
+                # Determine color and status based on confidence
+                if confidence > 0.7:
+                    color = (0, 255, 0)  # Green - high confidence
+                    status = "HIGH"
+                elif confidence > 0.5:
+                    color = (0, 255, 255)  # Yellow - good confidence
+                    status = "GOOD"
+                elif confidence > 0.3:
+                    color = (0, 165, 255)  # Orange - medium confidence
+                    status = "MEDIUM"
+                else:
+                    color = (0, 0, 255)  # Red - low confidence
+                    status = "LOW"
+                
+                # ALWAYS draw bounding box
+                cv2.rectangle(display_frame, (x_min, y_min), (x_max, y_max), color, 3)
+                
+                # ALWAYS draw prediction box
+                overlay = display_frame.copy()
+                cv2.rectangle(overlay, (x_min, y_min - 110), (x_min + 450, y_min - 10), (0, 0, 0), -1)
+                cv2.addWeighted(overlay, 0.75, display_frame, 0.25, 0, display_frame)
+                
+                # ALWAYS draw prediction text
+                cv2.putText(display_frame, f"DIGIT: {predicted_class}", 
+                           (x_min + 10, y_min - 70),
+                           cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 3)
+                cv2.putText(display_frame, f"Confidence: {confidence:.1%} ({status})", 
+                           (x_min + 10, y_min - 35),
                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+                
+                # Show buffer size indicator
+                buffer_text = f"Smoothing: {len(prediction_buffer)}/{SMOOTHING_FRAMES}"
+                cv2.putText(display_frame, buffer_text, (x_min + 10, y_min - 10),
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 200), 1)
+                
+                # ALWAYS draw top 3 predictions
+                top_3_indices = np.argsort(smoothed_predictions)[-3:][::-1]
+                y_offset = y_max + 30
+                
+                for i, idx in enumerate(top_3_indices):
+                    pred_text = f"{idx}: {smoothed_predictions[idx]:.1%}"
+                    cv2.putText(display_frame, pred_text, (x_min, y_offset + i*30),
+                               cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
     else:
-        # No hand detected
+        # No hand detected - clear buffer
+        if len(prediction_buffer) > 0:
+            prediction_buffer.clear()
         cv2.putText(display_frame, "Show hand with digit sign (0-9)", 
                    (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 255), 2)
     
@@ -198,8 +227,8 @@ while True:
     cv2.rectangle(overlay, (0, height - 50), (width, height), (0, 0, 0), -1)
     cv2.addWeighted(overlay, 0.6, display_frame, 0.4, 0, display_frame)
     
-    cv2.putText(display_frame, "ESC to exit", 
-               (width//2 - 80, height - 15),
+    cv2.putText(display_frame, "R: Reset | ESC: Exit", 
+               (width//2 - 120, height - 15),
                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
     
     # Display frame
@@ -211,6 +240,9 @@ while True:
     if key == 27:  # ESC
         print("\n👋 Exiting...")
         break
+    elif key == ord('r') or key == ord('R'):  # Reset buffer
+        prediction_buffer.clear()
+        print("🔄 Prediction buffer reset")
     
     frame_count += 1
 
