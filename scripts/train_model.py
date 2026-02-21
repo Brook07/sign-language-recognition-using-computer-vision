@@ -12,7 +12,7 @@ from tensorflow.keras import layers, models
 import matplotlib.pyplot as plt
 
 # Configuration
-DATASET_PATH = r"dataset\Preprocessed_ASL_Digits"
+DATASET_PATH = r"..\dataset\Preprocessed_ASL_Digits"
 IMAGE_SIZE = (128, 128)
 BATCH_SIZE = 32
 EPOCHS = 25
@@ -167,7 +167,7 @@ for digit in range(10):
         print(f"   Digit {digit}: {digit_acc*100:.1f}%")
 
 # STEP 6: SAVE MODEL
-model_filename = 'asl_digit_recognition_model.keras'
+model_filename = '../models/asl_digit_recognition_model.keras'
 model.save(model_filename)
 print(f"\n💾 Model saved as: {model_filename}")
 
@@ -193,8 +193,8 @@ plt.legend()
 plt.grid(True)
 
 plt.tight_layout()
-plt.savefig('training_history.png', dpi=150, bbox_inches='tight')
-print(f"📊 Training history saved as: training_history.png")
+plt.savefig('../outputs/training_history.png', dpi=150, bbox_inches='tight')
+print(f"📊 Training history saved as: outputs/training_history.png")
 
 print("\n✅ All done! You can now run:")
 print("   python test_realtime_improved_v2.py")

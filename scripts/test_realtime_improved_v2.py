@@ -12,7 +12,7 @@ from tensorflow import keras
 from collections import deque
 
 # Configuration
-MODEL_PATH = 'asl_digit_recognition_model.keras'
+MODEL_PATH = '../models/asl_digit_recognition_model.keras'
 IMAGE_SIZE = (128, 128)
 FPS_TARGET = 30
 SMOOTHING_FRAMES = 7  # Average over last 7 predictions for stability
@@ -40,7 +40,7 @@ except Exception as e:
 
 # Initialize MediaPipe Hand Detector
 print("\n🖐️  Initializing hand detector...")
-base_options = python.BaseOptions(model_asset_path='hand_landmarker.task')
+base_options = python.BaseOptions(model_asset_path='../models/hand_landmarker.task')
 options = vision.HandLandmarkerOptions(
     base_options=base_options,
     num_hands=1,

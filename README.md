@@ -75,7 +75,7 @@ pip install tensorflow opencv-python mediapipe scikit-learn matplotlib pandas nu
 
 ### 🎥 Run the Demo (1-Minute Quickstart)
 ```bash
-python test_realtime_improved_v2.py
+python scripts/test_realtime_improved_v2.py
 ```
 That's it! Show ASL digit signs to your webcam and see real-time predictions.
 
@@ -85,19 +85,19 @@ That's it! Show ASL digit signs to your webcam and see real-time predictions.
 
 #### 1. Preprocess Dataset (if needed)
 ```bash
-python preprocess_dataset.py
+python src/preprocess_dataset.py
 ```
 Converts original ASL images to grayscale, resizes to 128×128, and saves preprocessed data.
 
 #### 2. Train Model (if needed)
 ```bash
-python train_model.py
+python scripts/train_model.py
 ```
 Trains the main CNN model with early stopping and learning rate reduction. Achieves ~99.75% validation accuracy.
 
 #### 3. **Test Real-Time (Main Testing)**
 ```bash
-python test_realtime_improved_v2.py
+python scripts/test_realtime_improved_v2.py
 ```
 - Show ASL digit signs to your webcam
 - Real-time continuous predictions
@@ -105,17 +105,6 @@ python test_realtime_improved_v2.py
 - Confidence scores with color-coded status
 - Press 'R' to reset buffer, ESC to exit
 - **Working best for digits: 1, 2, 3, 4, 5, 9**
-
-#### 4. Diagnostic Tool (Debug & Analyze)
-```bash
-python diagnostic_tool.py
-```
-- Visual breakdown of preprocessing steps
-- Press SPACEBAR to capture and analyze
-- Shows what the model "sees"
-- Identifies prediction issues
-- Per-class probability visualization
-- Useful for debugging digits 6, 7, 8
 
 ## 📊 Model Performance
 
@@ -205,36 +194,37 @@ python diagnostic_tool.py
 
 ```
 sign-language-recognition-using-computer-vision/
-├── Core Scripts
+├── src/                               # Source code modules
 │   ├── hand_detection.py              # Real-time hand tracking
-│   ├── extract_landmarks.py           # Extract hand landmarks from images
-│   ├── preprocess_dataset.py          # Image preprocessing pipeline
+│   ├── extract_landmarks.py           # Extract hand landmarks
+│   └── preprocess_dataset.py          # Image preprocessing pipeline
 │   
-├── Training Scripts
+├── scripts/                           # Training & testing scripts
 │   ├── train_model.py                 # Main CNN training (10 digits)
+│   └── test_realtime_improved_v2.py   # Real-time testing (MAIN)
 │   
-├── Testing Scripts
-│   ├── test_realtime_improved_v2.py   # Real-time with temporal smoothing (MAIN)
-│   ├── diagnostic_tool.py             # Visual analysis & debugging tool
+├── models/                            # Trained models & MediaPipe files
+│   ├── hand_landmarker.task           # MediaPipe hand detection model
+│   ├── asl_digit_recognition_model.keras  # Main trained CNN model
+│   └── asl_model_678.keras            # Experimental model (not in use)
 │   
-├── Models
-│   ├── hand_landmarker.task           # MediaPipe model file
-│   ├── asl_digit_recognition_model.keras  # Main trained model
-│   ├── asl_model_678.keras            # Experimental model for 6,7,8
-│   ├── training_history.png           # Training curves visualization
+├── outputs/                           # Training outputs & results
+│   └── training_history.png           # Training curves visualization
 │   
-├── Dataset
-│   ├── American_Sign_Language_Digits_Dataset/  # Original images
-│   │   ├── 0/ ... 9/                  # Raw images per digit
-│   └── Preprocessed_ASL_Digits/       # Preprocessed 128x128 grayscale
-│       ├── 0/ ... 9/                  # Processed images per digit
+├── dataset/                           # ASL digit datasets
+│   ├── American_Sign_Language_Digits_Dataset/
+│   │   └── 0/ ... 9/                  # Original images per digit
+│   └── Preprocessed_ASL_Digits/
+│       └── 0/ ... 9/                  # Preprocessed 128×128 grayscale
 │   
-├── Documentation
-│   ├── docs/
-│   │   ├── hand_detection.md          # Detailed build documentation
-│   │   └── MODEL_IMPROVEMENTS.md      # Model iteration history
-│   ├── sign_language_images_for_learning/  # Reference images
-│   └── README.md                       # This file
+├── docs/                              # Documentation & demo
+│   ├── demo/                          # Demo screenshots  
+│   ├── hand_detection.md              # Build documentation
+│   └── MODEL_IMPROVEMENTS.md          # Model iteration history
+│   
+├── sign_language_images_for_learning/ # Reference ASL images
+├── .gitignore                         # Git ignore rules
+└── README.md                          # This file
 ```
 
 ## 🔧 How It Works

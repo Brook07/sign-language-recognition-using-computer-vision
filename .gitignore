@@ -1,20 +1,22 @@
-# Dataset
+# Dataset (ignored - too large)
 dataset/
 
-# Model files (large files)
-*.keras
-*.h5
-*.pb
-*.ckpt
-*.weights
+# Models folder (ignored - large files, regenerated during training)
+models/*.keras
+models/*.h5
+models/*.pb
+models/*.ckpt
+models/*.weights
+# But keep the MediaPipe model
+!models/hand_landmarker.task
 
-# Generated files
-*.csv
-*.png
-training_history.png
-confusion_matrix.png
-test_results.png
-preprocessing_comparison.png
+# Outputs folder (training results - regenerated)
+outputs/*.png
+outputs/*.csv
+outputs/*.json
+
+# Allow demo screenshots
+!docs/demo/*.png
 
 # Virtual environment
 .venv/
