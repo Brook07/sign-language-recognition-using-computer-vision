@@ -2,11 +2,11 @@
 
 A real-time ASL digit recognition system (0-9) using deep learning and computer vision. This project uses MediaPipe for hand detection and a custom CNN for digit classification with temporal smoothing for stable predictions.
 
-## 🎯 Current Status: Production Ready ✓
+## 🎯 Current Status: In Development 🚧
 
 **What this project does:**
 - Real-time hand detection and tracking using MediaPipe
-- Recognizes ASL digits (0-9) with **99.75% validation accuracy**
+- Recognizes ASL digits with **99.75% validation accuracy** (training set)
 - Live webcam predictions with temporal smoothing (7-frame buffer)
 - Comprehensive preprocessing and training pipeline
 - Advanced diagnostic tools for model analysis
@@ -15,13 +15,37 @@ A real-time ASL digit recognition system (0-9) using deep learning and computer 
 - ✅ Real-time hand landmark detection (21 points)
 - ✅ CNN model trained on 4,000 images per class
 - ✅ **Temporal smoothing** for stable predictions
-- ✅ Multiple testing modes (real-time, hybrid, diagnostic)
-- ✅ Static image evaluation
-- ✅ **99.75% validation accuracy**
-- ✅ Visual diagnostic tool for debugging
-- ✅ Specialized model support for challenging digits
+- ✅ Diagnostic tool for visual analysis
+- ✅ **Working digits: 1, 2, 3, 4, 5, 9**
+- ⚠️ **Known issues: Digits 6, 7, 8 need improvement**
+- ⚠️ Validation accuracy != real-world performance (data diversity needed)
 
-## 🚀 Quick Start
+## � Demo
+
+Real-time ASL digit recognition in action:
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/demo/Screenshot 2026-02-21 200340.png" alt="Demo 1" width="100%"/>
+    </td>
+    <td width="50%">
+      <img src="docs/demo/Screenshot 2026-02-21 200400.png" alt="Demo 2" width="100%"/>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/demo/Screenshot 2026-02-21 200419.png" alt="Demo 3" width="100%"/>
+    </td>
+    <td width="50%">
+      <img src="docs/demo/Screenshot 2026-02-21 200544.png" alt="Demo 4" width="100%"/>
+    </td>
+  </tr>
+</table>
+
+*Real-time predictions with confidence scores, bounding boxes, and temporal smoothing*
+
+## �🚀 Quick Start
 
 ### Prerequisites
 - Python 3.8+
@@ -53,7 +77,9 @@ pip install tensorflow opencv-python mediapipe scikit-learn matplotlib pandas nu
 ```bash
 python test_realtime_improved_v2.py
 ```
-That's it! Show ASL digit signs (0-9) to your webcam and see real-time predictions with confidence scores.
+That's it! Show ASL digit signs to your webcam and see real-time predictions.
+
+**Note:** Works best for digits 1, 2, 3, 4, 5, 9. Digits 6, 7, 8 need improvement due to training data limitations.
 
 ### Usage
 
@@ -69,25 +95,18 @@ python train_model.py
 ```
 Trains the main CNN model with early stopping and learning rate reduction. Achieves ~99.75% validation accuracy.
 
-#### 3. **Test Real-Time (Recommended)**
+#### 3. **Test Real-Time (Main Testing)**
 ```bash
 python test_realtime_improved_v2.py
 ```
-- Show ASL digit signs (0-9) to your webcam
+- Show ASL digit signs to your webcam
 - Real-time continuous predictions
 - **Temporal smoothing** for stable results (7-frame buffer)
 - Confidence scores with color-coded status
 - Press 'R' to reset buffer, ESC to exit
+- **Working best for digits: 1, 2, 3, 4, 5, 9**
 
-#### 4. Test with Hybrid Model
-```bash
-python test_hybrid.py
-```
-- Uses main model for all digits
-- Switches to specialized model for digits 6, 7, 8
-- Best of both models for improved accuracy
-
-#### 5. Diagnostic Tool (Debug & Analyze)
+#### 4. Diagnostic Tool (Debug & Analyze)
 ```bash
 python diagnostic_tool.py
 ```
@@ -96,18 +115,14 @@ python diagnostic_tool.py
 - Shows what the model "sees"
 - Identifies prediction issues
 - Per-class probability visualization
-
-#### 6. Test on Static Images
-```bash
-python test_static.py
-```
-Tests the model on pre-saved static images.
+- Useful for debugging digits 6, 7, 8
 
 ## 📊 Model Performance
 
 | Metric | Value |
 |--------|-------|
-| **Validation Accuracy** | **99.75%** |
+| **Validation Accuracy** | **99.75%** (on training dataset) |
+| **Real-World Performance** | **~70%** (generalization gap) |
 | Training Images | 4,000 per class |
 | Total Dataset | 40,000 images |
 | Classes | 10 (digits 0-9) |
@@ -122,6 +137,12 @@ Tests the model on pre-saved static images.
 - ✅ Dropout (0.3-0.5) to prevent overfitting
 - ✅ 20% validation split for monitoring
 
+**Real-World Performance:**
+- ✅ **Working well:** Digits 1, 2, 3, 4, 5, 9
+- ⚠️ **Challenging:** Digits 6, 7, 8 (similar hand poses in ASL)
+- ⚠️ **Issue:** Training data lacks diversity (same person, lighting, background)
+- 🔍 **Gap:** High validation accuracy ≠ high real-world accuracy
+
 **Real-Time Features:**
 - Temporal smoothing (7-frame moving average)
 - Dynamic bounding box with 80px padding
@@ -133,7 +154,7 @@ Tests the model on pre-saved static images.
 ### Model Optimization
 - **98% Parameter Reduction:** From 82.4M → 1.45M parameters
 - **File Size:** From 314 MB → 5.8 MB
-- **Accuracy Improvement:** 96.67% → 99.75%
+- **Validation Accuracy:** 99.75% (on training distribution)
 
 ### Real-Time Performance
 - **Frame Processing:** ~30 FPS on standard webcam
@@ -146,9 +167,32 @@ Tests the model on pre-saved static images.
 - **Robust:** 80px padding handles various hand sizes
 
 ### Advanced Features
-- **Hybrid Model Support:** Combines main + specialized models
 - **Diagnostic Mode:** Visual preprocessing analysis tool
-- **Multiple Test Modes:** Real-time, static, hybrid, diagnostic
+- **Temporal Smoothing:** 7-frame buffer for stable predictions
+- **Confidence Display:** Color-coded confidence levels
+
+## ⚠️ Known Limitations
+
+### Current Issues
+1. **Digits 6, 7, 8 Recognition:** Poor performance on these similar hand gestures
+   - Root cause: ASL digits 6, 7, 8 have very similar hand positions
+   - Training data lacks diversity (single person, uniform lighting/background)
+   
+2. **Generalization Gap:** 99.75% validation accuracy but ~70% real-world accuracy
+   - Model overfits to training data characteristics
+   - Struggles with different users, lighting, or camera angles
+
+3. **Data Diversity:** All training images from same source
+   - Same person's hand
+   - Same lighting conditions
+   - Same background
+   - Same camera angle
+
+### Recommended Solutions
+1. **Collect Diverse Data:** Photos from multiple people, various lighting/backgrounds
+2. **Data Augmentation:** Add rotation, brightness, contrast variations
+3. **Hand Landmarks:** Use MediaPipe landmark positions instead of raw pixels
+4. **More Training Data:** Especially for digits 6, 7, 8
 
 ## 🏗️ Technology Stack
 
@@ -168,22 +212,16 @@ sign-language-recognition-using-computer-vision/
 │   
 ├── Training Scripts
 │   ├── train_model.py                 # Main CNN training (10 digits)
-│   ├── train_cnn_improved.py          # Enhanced training with callbacks
-│   ├── train_model_678.py             # Specialized model for digits 6,7,8
 │   
 ├── Testing Scripts
-│   ├── test_realtime_improved_v2.py   # Real-time with temporal smoothing (RECOMMENDED)
-│   ├── test_hybrid.py                 # Hybrid model (main + specialized)
+│   ├── test_realtime_improved_v2.py   # Real-time with temporal smoothing (MAIN)
 │   ├── diagnostic_tool.py             # Visual analysis & debugging tool
-│   ├── test_static.py                 # Static image testing
-│   
-├── Utility Scripts
-│   ├── visualize_preprocessing.py     # Visualize preprocessing results
 │   
 ├── Models
 │   ├── hand_landmarker.task           # MediaPipe model file
-│   ├── asl_digit_recognition_model.keras  # Main trained model (99.75%)
-│   ├── asl_model_678.keras            # Specialized model for 6,7,8
+│   ├── asl_digit_recognition_model.keras  # Main trained model
+│   ├── asl_model_678.keras            # Experimental model for 6,7,8
+│   ├── training_history.png           # Training curves visualization
 │   
 ├── Dataset
 │   ├── American_Sign_Language_Digits_Dataset/  # Original images
@@ -253,7 +291,7 @@ Output: 10 classes (digits 0-9)
   - **EarlyStopping:** Patience 7, monitors validation loss
   - **ReduceLROnPlateau:** Patience 4, reduces LR by 0.5 when loss plateaus
 - **Regularization:** Dropout (0.3-0.5), Batch Normalization
-- **Final Validation Accuracy:** 99.75%
+- **Final Validation Accuracy:** 99.75% (on validation set from same distribution)
 
 ### Model Improvements Journey
 1. **Initial Model:** 96.67% accuracy, 82.4M parameters
@@ -261,21 +299,20 @@ Output: 10 classes (digits 0-9)
 3. **Architecture Optimization:** Reduced to 1.45M parameters (98% reduction)
 4. **Added Callbacks:** Early stopping and learning rate reduction
 5. **Temporal Smoothing:** 7-frame buffer for stable real-time predictions
-6. **Specialized Model:** Attempted for digits 6,7,8 (identified as challenging)
+6. **Current Challenge:** Overfitting to training distribution - high validation accuracy but poor real-world generalization for digits 6,7,8
 
 ## 🎬 Generated Outputs
 
 ### Models
-- `asl_digit_recognition_model.keras` - Main trained model (99.75% accuracy)
-- `asl_model_678.keras` - Specialized model for digits 6, 7, 8
+- `asl_digit_recognition_model.keras` - Main trained model
+- `asl_model_678.keras` - Experimental model (not in use)
 
 ### Visualizations
 - `training_history.png` - Training/validation curves
-- `training_history_678.png` - Specialized model training curves
-- `diagnostic_capture_*.png` - Visual diagnostic analysis images
+- `diagnostic_capture_*.png` - Visual diagnostic analysis images (from diagnostic tool)
 
-### Test Scripts Generate:
-- Real-time bounding boxes with confidence scores
+### Real-Time Output
+- Bounding boxes with confidence scores
 - Top-3 predictions overlay
 - Color-coded confidence levels
 - Temporal smoothing buffer status
@@ -286,14 +323,18 @@ Output: 10 classes (digits 0-9)
 - [x] Real-time continuous predictions
 - [x] Temporal smoothing for stability
 - [x] Diagnostic tool for debugging
-- [x] Multiple test modes (real-time, hybrid, diagnostic)
 - [x] Model optimization (98% parameter reduction)
 - [x] Preprocessing pipeline refinement
 
-### Planned 🎯
-- [ ] Improved data augmentation (rotation, brightness, contrast)
-- [ ] Collect diverse training data (multiple people, lighting, backgrounds)
-- [ ] Ensemble model approach for challenging digits (6,7,8)
+### High Priority 🔴 (Critical for Production)
+- [ ] **Fix digits 6, 7, 8 recognition** (currently not working)
+- [ ] **Collect diverse training data** (multiple people, lighting, backgrounds, angles)
+- [ ] Implement data augmentation (rotation, brightness, contrast, perspective)
+- [ ] Test with different users and environments
+- [ ] Consider landmark-based approach instead of pixel-based
+
+### Planned 🎯 (Future Features)
+- [ ] Ensemble model approach for improved accuracy
 - [ ] FastAPI backend for model serving
 - [ ] React web interface
 - [ ] Docker containerization
@@ -313,16 +354,24 @@ For detailed build process and technical documentation, see:
 ### Key Insights
 1. **Preprocessing Consistency is Critical:** Training and testing preprocessing must match EXACTLY (learned after CLAHE mismatch debugging)
 2. **Temporal Smoothing Helps:** 7-frame averaging significantly stabilizes real-time predictions
-3. **Data Diversity Matters:** Uniformity in training data (same person/lighting) limits generalization
-4. **Model Size != Accuracy:** Reduced from 82.4M to 1.45M parameters (98% reduction) while improving accuracy
-5. **Early Stopping Saves Time:** Prevents overfitting and unnecessary training epochs
-6. **Similar Gestures are Hard:** Digits 6, 7, 8 are visually similar in ASL and require more diverse training data
+3. **Data Diversity Matters Most:** Uniformity in training data (same person/lighting) severely limits real-world generalization
+4. **Validation Accuracy ≠ Real Performance:** 99.75% validation but ~70% real-world shows overfitting to training distribution
+5. **Model Size != Accuracy:** Reduced from 82.4M to 1.45M parameters (98% reduction) without losing performance
+6. **Early Stopping Saves Time:** Prevents overfitting and unnecessary training epochs
+7. **Similar Gestures are Hard:** Digits 6, 7, 8 are visually similar in ASL and require more diverse, high-quality training data
+8. **Pixel-Based Has Limits:** Raw image approach struggles with variation; landmark-based may be better
 
 ### Debugging Wins
 - ✅ Fixed "predicting 8 for everything" → preprocessing mismatch
 - ✅ Fixed low confidence → removed threshold blocking
 - ✅ Improved stability → added temporal smoothing
 - ✅ Created diagnostic tool → visual debugging for preprocessing pipeline
+
+### Current Challenges
+- ⚠️ **Overfitting:** High validation accuracy masks poor real-world performance
+- ⚠️ **Data Quality:** Training data too uniform (single source)
+- ⚠️ **Digits 6,7,8:** Still unreliable despite multiple approaches
+- 🔍 **Next Step:** Need to collect diverse real-world data or switch to landmark-based features
 
 ## 🤝 Contributing
 
@@ -341,6 +390,7 @@ This project is open source and available under the MIT License.
 ---
 
 **Last Updated:** February 21, 2026  
-**Status:** Production Ready - Continuous Improvements  
-**Model Version:** v2.0 (99.75% validation accuracy)
+**Status:** ⚠️ In Development - Known Issues with Digits 6,7,8  
+**Model Version:** v2.0 (99.75% validation accuracy, ~70% real-world accuracy)  
+**Working Digits:** 1, 2, 3, 4, 5, 9 ✅ | **Problematic:** 6, 7, 8 ❌
 
