@@ -1,25 +1,4 @@
 # Sign Language Recognition using Computer Vision
-
-A real-time ASL digit recognition system (0-9) using deep learning and computer vision. This project uses MediaPipe for hand detection and a custom CNN for digit classification with temporal smoothing for stable predictions.
-
-## 🎯 Current Status: In Development 🚧
-
-**What this project does:**
-- Real-time hand detection and tracking using MediaPipe
-- Recognizes ASL digits with **99.75% validation accuracy** (training set)
-- Live webcam predictions with temporal smoothing (7-frame buffer)
-- Comprehensive preprocessing and training pipeline
-- Advanced diagnostic tools for model analysis
-
-**Key Features:**
-- ✅ Real-time hand landmark detection (21 points)
-- ✅ CNN model trained on 4,000 images per class
-- ✅ **Temporal smoothing** for stable predictions
-- ✅ Diagnostic tool for visual analysis
-- ✅ **Working digits: 1, 2, 3, 4, 5, 9**
-- ⚠️ **Known issues: Digits 6, 7, 8 need improvement**
-- ⚠️ Validation accuracy != real-world performance (data diversity needed)
-
 ## � Demo
 
 Real-time ASL digit recognition in action:
@@ -44,6 +23,28 @@ Real-time ASL digit recognition in action:
 </table>
 
 *Real-time predictions with confidence scores, bounding boxes, and temporal smoothing*
+
+A real-time ASL digit recognition system (0-9) using deep learning and computer vision. This project uses MediaPipe for hand detection and a custom CNN for digit classification with temporal smoothing for stable predictions.
+
+## 🎯 Current Status: In Development 🚧
+
+**What this project does:**
+- Real-time hand detection and tracking using MediaPipe
+- Recognizes ASL digits with **99.75% validation accuracy** (training set)
+- Live webcam predictions with temporal smoothing (7-frame buffer)
+- Comprehensive preprocessing and training pipeline
+- Advanced diagnostic tools for model analysis
+
+**Key Features:**
+- ✅ Real-time hand landmark detection (21 points)
+- ✅ CNN model trained on 4,000 images per class
+- ✅ **Temporal smoothing** for stable predictions
+- ✅ Diagnostic tool for visual analysis
+- ✅ **Working digits: 1, 2, 3, 4, 5, 9**
+- ⚠️ **Known issues: Digits 6, 7, 8 need improvement**
+- ⚠️ Validation accuracy != real-world performance (data diversity needed)
+
+
 
 ## �🚀 Quick Start
 
@@ -322,65 +323,3 @@ Output: 10 classes (digits 0-9)
 - [ ] Implement data augmentation (rotation, brightness, contrast, perspective)
 - [ ] Test with different users and environments
 - [ ] Consider landmark-based approach instead of pixel-based
-
-### Planned 🎯 (Future Features)
-- [ ] Ensemble model approach for improved accuracy
-- [ ] FastAPI backend for model serving
-- [ ] React web interface
-- [ ] Docker containerization
-- [ ] Cloud deployment (AWS/GCP/Azure)
-- [ ] Expand to A-Z alphabet recognition
-- [ ] Multi-hand support
-- [ ] Mobile app development (TensorFlow Lite)
-
-## 📚 Documentation
-
-For detailed build process and technical documentation, see:
-- [docs/hand_detection.md](docs/hand_detection.md) - Hand detection implementation
-- [docs/MODEL_IMPROVEMENTS.md](docs/MODEL_IMPROVEMENTS.md) - Model iteration history
-
-## 💡 Lessons Learned
-
-### Key Insights
-1. **Preprocessing Consistency is Critical:** Training and testing preprocessing must match EXACTLY (learned after CLAHE mismatch debugging)
-2. **Temporal Smoothing Helps:** 7-frame averaging significantly stabilizes real-time predictions
-3. **Data Diversity Matters Most:** Uniformity in training data (same person/lighting) severely limits real-world generalization
-4. **Validation Accuracy ≠ Real Performance:** 99.75% validation but ~70% real-world shows overfitting to training distribution
-5. **Model Size != Accuracy:** Reduced from 82.4M to 1.45M parameters (98% reduction) without losing performance
-6. **Early Stopping Saves Time:** Prevents overfitting and unnecessary training epochs
-7. **Similar Gestures are Hard:** Digits 6, 7, 8 are visually similar in ASL and require more diverse, high-quality training data
-8. **Pixel-Based Has Limits:** Raw image approach struggles with variation; landmark-based may be better
-
-### Debugging Wins
-- ✅ Fixed "predicting 8 for everything" → preprocessing mismatch
-- ✅ Fixed low confidence → removed threshold blocking
-- ✅ Improved stability → added temporal smoothing
-- ✅ Created diagnostic tool → visual debugging for preprocessing pipeline
-
-### Current Challenges
-- ⚠️ **Overfitting:** High validation accuracy masks poor real-world performance
-- ⚠️ **Data Quality:** Training data too uniform (single source)
-- ⚠️ **Digits 6,7,8:** Still unreliable despite multiple approaches
-- 🔍 **Next Step:** Need to collect diverse real-world data or switch to landmark-based features
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📄 License
-
-This project is open source and available under the MIT License.
-
-## 🙏 Acknowledgments
-
-- MediaPipe by Google for hand detection
-- TensorFlow team for the deep learning framework
-- ASL dataset contributors
-
----
-
-**Last Updated:** February 21, 2026  
-**Status:** ⚠️ In Development - Known Issues with Digits 6,7,8  
-**Model Version:** v2.0 (99.75% validation accuracy, ~70% real-world accuracy)  
-**Working Digits:** 1, 2, 3, 4, 5, 9 ✅ | **Problematic:** 6, 7, 8 ❌
-
