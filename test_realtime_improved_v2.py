@@ -9,35 +9,30 @@ import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 from tensorflow import keras
-from collections import deque
 
 # Configuration
-MODEL_PATH = 'asl_digit_recognition_model.keras'
+MODEL_PATH = 'asl_digit_recognition_model_improved.keras'
 IMAGE_SIZE = (128, 128)
-CONFIDENCE_THRESHOLD = 0.65  # Slightly higher threshold
-FPS_TARGET = 60  # Higher FPS for better capture
-PREDICTION_SMOOTHING_FRAMES = 5  # Reduced buffer for faster response
-SKIP_FRAMES = 8  # Only predict every 3rd frame for better FPS
 
 print("=" * 60)
-print("🚀 ASL DIGIT RECOGNITION - IMPROVED REAL-TIME TESTING")
+print("📸 ASL DIGIT RECOGNITION - CAPTURE MODE")
 print("=" * 60)
-print("\n✨ NEW FEATURES:")
-print("  • 60 FPS capture for better frame quality")
-print("  • Exact same preprocessing as training data")
-print(f"  • Temporal smoothing (averaging last {PREDICTION_SMOOTHING_FRAMES} predictions)")
-print(f"  • Smart frame-skipping (predicts every {SKIP_FRAMES + 1} frames)")
-print("  • Frame-by-frame static image processing")
+print("\n✨ HOW IT WORKS:")
+print("  • Live camera feed displays continuously")
+print("  • Press SPACEBAR to capture and analyze your sign")
+print("  • Processes as static image with hand detection")
+print("  • Shows prediction result on screen")
 print("=" * 60)
 
 # Load the trained model
 print("\n📦 Loading trained model...")
 try:
     model = keras.models.load_model(MODEL_PATH)
-    print(f"✅ Model loaded successfully from {MODEL_PATH}")
+    print(f"✅ Model loaded successfully")
 except Exception as e:
     print(f"❌ Error loading model: {e}")
-    print("Please make sure you have trained the model first (run train_cnn.py)")
+    print("Please train the improved model first:")
+    print("   python train_cnn_improved.py")
     exit(1)
 
 # Initialize MediaPipe Hand Detector
@@ -51,12 +46,10 @@ options = vision.HandLandmarkerOptions(
 )
 detector = vision.HandLandmarker.create_from_options(options)
 
-# Prediction smoothing buffer
-prediction_buffer = deque(maxlen=PREDICTION_SMOOTHING_FRAMES)
-
-def get_hand_bbox(hand_landmarks, img_width, img_height, padding=50):
+def get_hand_bbox(hand_landmarks, img_width, img_height, padding=60):
     """
-    Calculate bounding box around detected hand with extra padding
+    Calculate bounding box around detected hand with padding
+    Increased padding for better hand capture
     """
     x_coords = [lm.x * img_width for lm in hand_landmarks]
     y_coords = [lm.y * img_height for lm in hand_landmarks]
@@ -68,13 +61,15 @@ def get_hand_bbox(hand_landmarks, img_width, img_height, padding=50):
     
     return x_min, y_min, x_max, y_max
 
-def preprocess_hand_image_like_training(hand_roi):
+def preprocess_hand_image_EXACT_MATCH(hand_roi):
     """
-    Preprocess hand region EXACTLY like training data preprocessing
-    This matches the preprocessing from preprocess_dataset.py
+    Preprocess hand region EXACTLY like training data:
+    1. Convert to grayscale
+    2. Apply histogram equalization (NEW - for lighting invariance!)
+    3. Resize to target size
+    4. Normalize to [0, 1]
     
-    NOTE: If accuracy is still low, consider retraining with histogram equalization
-    applied to both training and real-time data for better lighting invariance
+    This MUST match train_cnn_improved.py preprocessing!
     """
     # Step 1: Convert to grayscale (if not already)
     if len(hand_roi.shape) == 3:
@@ -82,16 +77,19 @@ def preprocess_hand_image_like_training(hand_roi):
     else:
         gray = hand_roi
     
-    # Step 2: Resize to target size using INTER_AREA (same as training)
-    resized = cv2.resize(gray, IMAGE_SIZE, interpolation=cv2.INTER_AREA)
+    # Step 2: Apply histogram equalization (CRITICAL for lighting invariance!)
+    equalized = cv2.equalizeHist(gray)
     
-    # Step 3: Normalize to [0, 1] as float32
+    # Step 3: Resize to target size using INTER_AREA (same as training)
+    resized = cv2.resize(equalized, IMAGE_SIZE, interpolation=cv2.INTER_AREA)
+    
+    # Step 4: Normalize to [0, 1] as float32
     normalized = resized.astype(np.float32) / 255.0
     
-    # Step 4: Add batch and channel dimensions [batch, height, width, channels]
+    # Step 5: Add batch and channel dimensions [batch, height, width, channels]
     preprocessed = np.expand_dims(normalized, axis=[0, -1])
     
-    return preprocessed, resized
+    return preprocessed, equalized, resized
 
 def get_smoothed_prediction(predictions):
     """
@@ -111,24 +109,40 @@ def get_smoothed_prediction(predictions):
 def draw_prediction_ui(frame, prediction, confidence, bbox, all_predictions):
     """
     Draw enhanced prediction information on frame
+    ALWAYS show prediction, with color indicating confidence level
     """
     x_min, y_min, x_max, y_max = bbox
     
-    # Draw bounding box with thicker line
-    color = (0, 255, 0) if confidence > CONFIDENCE_THRESHOLD else (0, 165, 255)
+    # Draw bounding box with dynamic color based on confidence
+    if confidence > HIGH_CONFIDENCE_THRESHOLD:
+        color = (0, 255, 0)  # Green for high confidence (>60%)
+    elif confidence > 0.30:
+        color = (0, 200, 200)  # Yellow for medium confidence (30-60%)
+    elif confidence > 0.15:
+        color = (0, 165, 255)  # Orange for low-medium confidence (15-30%)
+    else:
+        color = (0, 0, 255)  # Red for very low confidence (<15%)
+    
     cv2.rectangle(frame, (x_min, y_min), (x_max, y_max), color, 3)
     
-    # Prepare text
-    if confidence > CONFIDENCE_THRESHOLD:
-        text = f"Digit: {prediction}"
-        conf_text = f"Confidence: {confidence:.1%}"
+    # ALWAYS show the prediction - just indicate confidence level
+    text = f"Digit: {prediction}"
+    
+    # Add confidence indicator to the confidence text
+    if confidence > HIGH_CONFIDENCE_THRESHOLD:
+        conf_status = "HIGH"
+    elif confidence > 0.30:
+        conf_status = "MEDIUM"
+    elif confidence > 0.15:
+        conf_status = "LOW"
     else:
-        text = "Low Confidence"
-        conf_text = f"{confidence:.1%}"
+        conf_status = "VERY LOW"
+    
+    conf_text = f"Confidence: {confidence:.1%} ({conf_status})"
     
     # Draw semi-transparent background for text
     overlay = frame.copy()
-    cv2.rectangle(overlay, (x_min, y_min - 100), (x_min + 300, y_min - 10), (0, 0, 0), -1)
+    cv2.rectangle(overlay, (x_min, y_min - 100), (x_min + 450, y_min - 10), (0, 0, 0), -1)
     cv2.addWeighted(overlay, 0.7, frame, 0.3, 0, frame)
     
     # Draw text with larger font
@@ -149,7 +163,7 @@ def draw_prediction_ui(frame, prediction, confidence, bbox, all_predictions):
 
 def draw_info_panel(frame, fps, buffer_size, skip_frames):
     """
-    Draw enhanced information panel on frame
+    Draw information panel on frame
     """
     height, width = frame.shape[:2]
     
@@ -183,18 +197,17 @@ if not cap.isOpened():
 # Set camera properties for high-quality capture
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-cap.set(cv2.CAP_PROP_FPS, FPS_TARGET)  # Try to set 60 FPS
+cap.set(cv2.CAP_PROP_FPS, FPS_TARGET)
 
-# Get actual FPS (some cameras don't support 60)
 actual_fps = cap.get(cv2.CAP_PROP_FPS)
-print(f"✅ Camera initialized at {actual_fps} FPS (requested {FPS_TARGET} FPS)")
+print(f"✅ Camera initialized at {actual_fps} FPS")
 
 print("\n✅ System ready!")
 print("\n" + "=" * 60)
 print("INSTRUCTIONS:")
 print("  • Show your hand with a digit sign (0-9)")
-print(f"  • Predictions every {SKIP_FRAMES + 1} frames for optimal FPS")
 print("  • Hold steady for 0.3-0.5 seconds for best results")
+print("  • Model now handles different lighting conditions better!")
 print("  • Press SPACE to pause/resume")
 print("  • Press R to reset prediction buffer")
 print("  • Press ESC to exit")
@@ -209,6 +222,9 @@ last_prediction = None
 last_confidence = 0.0
 last_bbox = None
 last_all_preds = None
+
+# Debug window for preprocessed images
+show_debug = True
 
 while True:
     if not paused:
@@ -237,51 +253,60 @@ while True:
             # Get first hand
             hand_landmarks = detection_result.hand_landmarks[0]
             
-            # Get bounding box with more padding for better capture
+            # Get bounding box with more padding
             h, w = frame.shape[:2]
-            bbox = get_hand_bbox(hand_landmarks, w, h, padding=50)
+            bbox = get_hand_bbox(hand_landmarks, w, h, padding=60)
             x_min, y_min, x_max, y_max = bbox
             
             # Extract hand region
             hand_roi = frame[y_min:y_max, x_min:x_max]
             
             if hand_roi.size > 0 and hand_roi.shape[0] > 10 and hand_roi.shape[1] > 10:
-                # Only predict every SKIP_FRAMES+1 frames to improve FPS
+                # Only predict every SKIP_FRAMES+1 frames
                 prediction_frame_counter += 1
                 
                 if prediction_frame_counter % (SKIP_FRAMES + 1) == 0:
-                    # Preprocess EXACTLY like training data
-                    preprocessed, processed_gray = preprocess_hand_image_like_training(hand_roi)
+                    # Preprocess with EXACT same method as training
+                    preprocessed, equalized_img, resized_img = preprocess_hand_image_EXACT_MATCH(hand_roi)
                     
-                    # Get prediction (process like static image)
+                    # Get prediction
                     predictions = model.predict(preprocessed, verbose=0)[0]
                     
                     # Apply temporal smoothing
                     predicted_class, confidence, smoothed_predictions = get_smoothed_prediction(predictions)
                     
                     if predicted_class is not None:
-                        # Store prediction for reuse
+                        # Store prediction
                         last_prediction = predicted_class
                         last_confidence = confidence
                         last_bbox = bbox
                         last_all_preds = smoothed_predictions
+                    
+                    # Show debug preprocessing windows
+                    if show_debug:
+                        # Show equalized image (new step!)
+                        debug_size = (150, 150)
+                        
+                        # Equalized image
+                        debug_eq = cv2.resize(equalized_img, debug_size)
+                        debug_eq_bgr = cv2.cvtColor(debug_eq, cv2.COLOR_GRAY2BGR)
+                        display_frame[10:10+debug_size[0], 10:10+debug_size[1]] = debug_eq_bgr
+                        cv2.putText(display_frame, "Equalized", (15, debug_size[0] + 25),
+                                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
+                        
+                        # Resized/preprocessed image
+                        debug_res = cv2.resize(resized_img, debug_size)
+                        debug_res_bgr = cv2.cvtColor(debug_res, cv2.COLOR_GRAY2BGR)
+                        display_frame[10:10+debug_size[0], 170:170+debug_size[1]] = debug_res_bgr
+                        cv2.putText(display_frame, "Preprocessed", (175, debug_size[0] + 25),
+                                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
                 
-                # Draw using last prediction (every frame) or new prediction
+                # Draw using last prediction
                 if last_prediction is not None and last_bbox is not None:
                     draw_prediction_ui(display_frame, last_prediction, last_confidence, 
                                      last_bbox, last_all_preds)
-                
-                # Always show preprocessed image for current frame
-                if prediction_frame_counter % (SKIP_FRAMES + 1) == 0:
-                    # Optional: Show preprocessed image in corner for debugging
-                    debug_size = (150, 150)
-                    debug_img = cv2.resize(processed_gray, debug_size)
-                    debug_img_bgr = cv2.cvtColor((debug_img * 255).astype(np.uint8), cv2.COLOR_GRAY2BGR)
-                    display_frame[10:10+debug_size[0], 10:10+debug_size[1]] = debug_img_bgr
-                    cv2.putText(display_frame, "Preprocessed", (15, debug_size[0] + 25),
-                               cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
         else:
-            # No hand detected - clear buffer and predictions
+            # No hand detected - clear buffer after a short delay
             if len(prediction_buffer) > 0 and frame_count % 10 == 0:
                 prediction_buffer.clear()
                 last_prediction = None
@@ -304,7 +329,7 @@ while True:
                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 3)
     
     # Display frame
-    cv2.imshow("ASL Digit Recognition - Improved Real-Time", display_frame)
+    cv2.imshow("ASL Digit Recognition - Improved V2", display_frame)
     
     # Handle keyboard input
     key = cv2.waitKey(1) & 0xFF
@@ -323,6 +348,9 @@ while True:
         last_all_preds = None
         prediction_frame_counter = 0
         print("🔄 Prediction buffer reset")
+    elif key == ord('d') or key == ord('D'):
+        show_debug = not show_debug
+        print(f"{'🔍 Debug view enabled' if show_debug else '🔍 Debug view disabled'}")
 
 # Cleanup
 cap.release()
