@@ -19,6 +19,7 @@ HAND_CONNECTIONS = [
     (5, 9), (9, 13), (13, 17)  # Palm
 ]
 
+
 def draw_landmarks(frame, hand_landmarks):
     h, w, _ = frame.shape
     
